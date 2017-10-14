@@ -492,8 +492,7 @@ def train(**kwargs):
     class_number = len(image_list)
     # If no classes were found
     if class_number == 0:
-        print('No valid directories were found at ' + kwargs.get("image_dir",
-                                                                 "dataset"))
+        print('No valid directories were found at ' + kwargs.get("image_dir","dataset"))
         return -1
     # If a single class was found
     if class_number == 1:
@@ -524,24 +523,26 @@ def train(**kwargs):
              kwargs.get("learning_rate", 0.01))
 
         # Create the operations to evaluate the accuracy of the new layer.
-        eval_step, prediction = evaluation_step(final_tensor,
-                                                ground_truth_input)
+        eval_step, prediction = evaluation_step(final_tensor,ground_truth_input)
 
         # Merge all the summaries and write them out to the summaries_dir
         merged = tf.summary.merge_all()
         # Output the training outcome
-        train_writer = tf.summary.FileWriter(
-            "/tmp/retrain_logs" + '/train', session.graph)
-
+        train_writer = tf.summary.FileWriter("/tmp/retrain_logs" + '/train', session.graph)
         # Output the training outcome
-        validation_writer = tf.summary.FileWriter(
-            "/tmp/retrain_logs" + '/validation')
+        validation_writer = tf.summary.FileWriter("/tmp/retrain_logs" + '/validation')
 
         # Set up all our weights to their initial default values.
         init = tf.global_variables_initializer()
         session.run(init)
+<<<<<<< HEAD
 
         iterations = kwargs.get("training_iterations", 500)
+=======
+        
+        dt = {}
+        dv = {}
+>>>>>>> 4925d26d7cf9ee81d8a18bdba62452204da893c3
         # Run the training for this mani iterations.
         for i in range(iterations):
             # Get a batch of input bottleneck values.
@@ -563,17 +564,21 @@ def train(**kwargs):
                            ground_truth_input: train_ground_truth})
             train_writer.add_summary(train_summary, i)
 
+<<<<<<< HEAD
             is_last_step = (i + 1 == iterations)
             if (i % kwargs.get("eval_step_interval")) == 0 or is_last_step:
                 train_accuracy, cross_entropy_value = session.run(
                     [eval_step, cross_entropy],
                     feed_dict={bottleneck_input: train_bottlenecks,
                                ground_truth_input: train_ground_truth})
+=======
+            is_last_step = (i + 1 == kwargs.get("training_iterations", 500))
+            if (i % kwargs.get("eval_step_interval", 10)) == 0 or is_last_step:
+                train_accuracy, cross_entropy_value = session.run([eval_step, cross_entropy],feed_dict={bottleneck_input: train_bottlenecks, ground_truth_input: train_ground_truth})
+>>>>>>> 4925d26d7cf9ee81d8a18bdba62452204da893c3
 
-                print('%s: Step %d: Train accuracy = %.1f%%' % (
-                    datetime.now(), i, train_accuracy * 100))
-                print('%s: Step %d: Cross entropy = %f' % (
-                    datetime.now(), i, cross_entropy_value))
+                #print('%s: Step %d: Train accuracy = %.1f%%' % (datetime.now(), i, train_accuracy * 100))
+                #print('%s: Step %d: Cross entropy = %f' % (datetime.now(), i, cross_entropy_value))
 
                 validation_bottlenecks, validation_ground_truth, _ = (
                     get_random_cached_bottlenecks(
@@ -583,7 +588,11 @@ def train(**kwargs):
                         kwargs.get("bottleneck_dir"),
                         kwargs.get("image_dir"), jpeg_data_tensor,
                         bottleneck_tensor))
+            
+            print('%s: Step %d: Train accuracy = %.1f%%' % (datetime.now(), i, train_accuracy * 100))
+            dt[i] = train_accuracy * 100
 
+<<<<<<< HEAD
                 # Run a validation step and capture training summaries
                 validation_summary, validation_accuracy = session.run(
                     [merged, eval_step],
@@ -598,6 +607,48 @@ def train(**kwargs):
         # We've completed all our training, so run a final test evaluation
         test_bottlenecks, test_ground_truth, test_filenames = (
             get_random_cached_bottlenecks(
+=======
+            # Run a validation step and capture training summaries
+            validation_summary, validation_accuracy = session.run([merged, eval_step], feed_dict={bottleneck_input: validation_bottlenecks, ground_truth_input: validation_ground_truth})
+
+            validation_writer.add_summary(validation_summary, i)
+            print('%s: Step %d: Validation accuracy = %.1f%% (N=%d)' %(datetime.now(), i, validation_accuracy * 100, len(validation_bottlenecks)))
+            dv[i] = validation_accuracy * 100
+            
+            
+            # We've completed all our training, so run a final test evaluation
+            test_bottlenecks, test_ground_truth, test_filenames = (
+                get_random_cached_bottlenecks(
+                    session,
+                    image_list,
+                    kwargs.get("test_batch_size"),
+                    'testing',
+                    kwargs.get("bottleneck_dir"),
+                    kwargs.get("image_dir"),
+                    jpeg_data_tensor,
+                    bottleneck_tensor))
+
+            test_accuracy, predictions = session.run(
+                [eval_step, prediction],
+                feed_dict={bottleneck_input: test_bottlenecks,
+                           ground_truth_input: test_ground_truth})
+
+            print('Final test accuracy = %.1f%% (N=%d)' % (
+                test_accuracy * 100, len(test_bottlenecks)))
+
+
+            if kwargs.get("misclassified_print"):
+                print('=== MISCLASSIFIED TEST IMAGES ===')
+                for i, test_filename in enumerate(test_filenames):
+                    if predictions[i] != test_ground_truth[i].argmax():
+                        print('%70s  %s' % (
+                            test_filename,
+                            list(image_list)[predictions[i]]))
+
+            # Write out the trained graph and labels with the weights stored as
+            # constants.
+            output_graph_def = graph_util.convert_variables_to_constants(
+>>>>>>> 4925d26d7cf9ee81d8a18bdba62452204da893c3
                 session,
                 image_list,
                 kwargs.get("test_batch_size"),
@@ -633,5 +684,12 @@ def train(**kwargs):
         with gfile.FastGFile(kwargs.get("output_graph"), 'wb') as f:
             f.write(output_graph_def.SerializeToString())
 
+<<<<<<< HEAD
         with gfile.FastGFile(kwargs.get("output_labels"), 'w') as f:
             f.write('\n'.join(image_list.keys()) + '\n')
+=======
+            with gfile.FastGFile(kwargs.get("output_labels"), 'w') as f:
+                f.write('\n'.join(image_list.keys()) + '\n')
+            
+    return dt, dv
+>>>>>>> 4925d26d7cf9ee81d8a18bdba62452204da893c3
