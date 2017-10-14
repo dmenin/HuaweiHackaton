@@ -1,20 +1,11 @@
 from blood_model import train
 import _pickle as pickle
-import pandas as pd
-import csv
 
 # Training arguments
-<<<<<<< HEAD
-train(**{
-    "image_dir": "dataset",
-    "training_iterations": 500,
-    "summaries_dir": "tf_files/training_summaries/basic",
-=======
 dt, dv = train(**{
     "image_dir": "training_dataset",
-    "training_iterations": 100,
-    #  "summaries_dir": "tf_files/training_summaries/basic",
->>>>>>> 4925d26d7cf9ee81d8a18bdba62452204da893c3
+    "training_iterations": 500,
+    "summaries_dir": "tf_files/training_summaries/basic",
     "bottleneck_dir": "tf_files/bottlenecks",
     "output_graph": "tf_files/retrained_graph.pb",
     "output_labels": "tf_files/retrained_labels.txt",
@@ -37,9 +28,8 @@ pickle.dump(dv, open('dv.pickle', 'wb'))
 print (dt)
 print (dv)
 
-
-#dt =  pickle.load(open('dt.pickle' , 'rb'))
-#dv =  pickle.load(open('dv.pickle' , 'rb'))
+# dt =  pickle.load(open('dt.pickle' , 'rb'))
+# dv =  pickle.load(open('dv.pickle' , 'rb'))
 
 with open("dt.csv", "w") as f:
     for key in dt:
