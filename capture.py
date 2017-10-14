@@ -5,6 +5,7 @@ import datetime
 import classify as classme
 from tabulate import tabulate#pretty print
 import pandas as pd
+import Tree
 
 
 def getUnIdentifier():
@@ -29,14 +30,6 @@ try:
         gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
         image = gray
         
-#        faces = faceCascade.detectMultiScale(
-#            gray,
-#            scaleFactor=1.1,
-#            minNeighbors=5,
-#            minSize=(30, 30),
-#            flags=cv2.COLOR_BGR2HSV
-#        )
-        
         cv2.imshow('image',gray)
         
         ## Check the Keyboard input
@@ -54,8 +47,8 @@ try:
         if ch == ord('8'):
             cv2.imwrite('training_dataset\\neutral\\{}.jpg'.format(getUnIdentifier()),image)
 
-        if ch == ord('7'):
-            cv2.imwrite('training_dataset\\angry\\{}.jpg'.format(getUnIdentifier()),image)
+#        if ch == ord('7'):
+#            cv2.imwrite('training_dataset\\angry\\{}.jpg'.format(getUnIdentifier()),image)
 
         if ch == ord('l'):
             cv2.imwrite('test_img\\test_img.jpg',image)
@@ -68,7 +61,12 @@ try:
             
             if emotion != 'neutral':
                 print ("There is a {}% chance you are feeling {}".format(prob, emotion))
+                suggestion = Tree.getSuggestion(emotion, 'Sunday', 'Evening')
+                print (suggestion)
+                print ('\n \n')
+                print ('Probabilities:')
                 print (tabulate(resultdf, headers='keys', tablefmt='psql'))
+
             else:
                 print ('no emotion detected')
             print ('')
