@@ -4,7 +4,7 @@ from blood_model import train
 train(**{
     "image_dir": "dataset",
     "training_iterations": 500,
-    #  "summaries_dir": "tf_files/training_summaries/basic",
+    "summaries_dir": "tf_files/training_summaries/basic",
     "bottleneck_dir": "tf_files/bottlenecks",
     "output_graph": "tf_files/retrained_graph.pb",
     "output_labels": "tf_files/retrained_labels.txt",

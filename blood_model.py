@@ -1,7 +1,5 @@
 # Import OS
 import os
-# Import SYS
-import sys
 # Import Regular expression
 import re
 # Import Random
@@ -28,6 +26,18 @@ BOTTLENECK_TENSOR_NAME = 'pool_3/_reshape:0'
 RESIZED_INPUT_TENSOR_NAME = 'ResizeBilinear:0'
 JPEG_DATA_TENSOR_NAME = 'DecodeJpeg/contents:0'
 MAX_NUM_IMAGES_PER_CLASS = 2 ** 27 - 1  # ~134M
+
+
+def variable_summaries(var):
+    with tf.name_scope('summaries'):
+        mean = tf.reduce_mean(var)
+        tf.summary.scalar('mean', mean)
+        with tf.name_scope('stddev'):
+            stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
+        tf.summary.scalar('stddev', stddev)
+        tf.summary.scalar('max', tf.reduce_max(var))
+        tf.summary.scalar('min', tf.reduce_min(var))
+        tf.summary.histogram('histogram', var)
 
 
 # Function to ensure directories exist
@@ -135,10 +145,10 @@ def cache_bottleneck(session, image_list, image_dir, bottleneck_dir,
                 create_bottleneck(session, image_list, label_name, index,
                                   image_dir, category, bottleneck_dir,
                                   jpeg_data_tensor, bottleneck_tensor)
-            # Increment the bottleneck
-            bottlenecks += 1
-            if bottlenecks % 100 == 0:
-                print(str(bottlenecks) + ' bottleneck files created.')
+                # Increment the bottleneck
+                bottlenecks += 1
+                if bottlenecks % 100 == 0:
+                    print(str(bottlenecks) + ' bottleneck files created.')
 
 
 # Function that creates bottlenecks
@@ -167,7 +177,7 @@ def create_bottleneck(session, image_list, label_name, index, image_dir,
     with open(bottleneck_path, 'r') as bottleneck_file:
         # Read from the bottleneck file
         bottleneck_string = bottleneck_file.read()
-
+    did_hit_error = False
     # Check if the values are corrupted
     try:
         bottleneck_values = [float(x) for x in bottleneck_string.split(',')]
@@ -175,6 +185,9 @@ def create_bottleneck(session, image_list, label_name, index, image_dir,
     except ValueError:
         # Output error message
         print('Invalid float found, recreating bottleneck')
+        did_hit_error = True
+
+    if did_hit_error:
         # Recreate bottleneck file
         create_bottleneck_file(bottleneck_path, image_list, label_name, index,
                                image_dir, category, session, jpeg_data_tensor,
@@ -235,7 +248,7 @@ def run_bottleneck_on_image(session, image_data, image_data_tensor,
         bottleneck_tensor,
         {image_data_tensor: image_data})
 
-    # Returned squeezed the values
+    # Return squeezed the values
     return np.squeeze(bottleneck_values)
 
 
@@ -387,9 +400,12 @@ def final_training_ops(class_count, final_tensor_name, bottleneck_tensor,
             # Set the final weights
             layer_weights = tf.Variable(initial_value, name='final_weights')
 
+            variable_summaries(layer_weights)
+
         with tf.name_scope('biases'):
             layer_biases = tf.Variable(tf.zeros([class_count]),
                                        name='final_biases')
+            variable_summaries(layer_biases)
 
         with tf.name_scope('Wx_plus_b'):
             logits = tf.matmul(bottleneck_input, layer_weights) + layer_biases
@@ -440,6 +456,11 @@ def evaluation_step(result_tensor, ground_truth_tensor):
 
 # Most awesome function that changes the world
 def train(**kwargs):
+    # Setup the directory we'll write summaries to for TensorBoard
+    if tf.gfile.Exists(kwargs.get("summaries_dir")):
+        tf.gfile.DeleteRecursively(kwargs.get("summaries_dir"))
+    tf.gfile.MakeDirs(kwargs.get("summaries_dir"))
+
     # Load the pre-created graph
     with tf.Graph().as_default() as graph:
         # Construct the filename
@@ -520,8 +541,9 @@ def train(**kwargs):
         init = tf.global_variables_initializer()
         session.run(init)
 
+        iterations = kwargs.get("training_iterations", 500)
         # Run the training for this mani iterations.
-        for i in range(kwargs.get("training_iterations", 500)):
+        for i in range(iterations):
             # Get a batch of input bottleneck values.
             (train_bottlenecks, train_ground_truth, _) = \
                     get_random_cached_bottlenecks(
@@ -541,8 +563,8 @@ def train(**kwargs):
                            ground_truth_input: train_ground_truth})
             train_writer.add_summary(train_summary, i)
 
-            is_last_step = (i + 1 == kwargs.get("training_iterations", 500))
-            if (i % kwargs.get("eval_step_interval", 10)) == 0 or is_last_step:
+            is_last_step = (i + 1 == iterations)
+            if (i % kwargs.get("eval_step_interval")) == 0 or is_last_step:
                 train_accuracy, cross_entropy_value = session.run(
                     [eval_step, cross_entropy],
                     feed_dict={bottleneck_input: train_bottlenecks,
@@ -562,54 +584,54 @@ def train(**kwargs):
                         kwargs.get("image_dir"), jpeg_data_tensor,
                         bottleneck_tensor))
 
-            # Run a validation step and capture training summaries
-            validation_summary, validation_accuracy = session.run(
-                [merged, eval_step],
-                feed_dict={bottleneck_input: validation_bottlenecks,
-                           ground_truth_input: validation_ground_truth})
+                # Run a validation step and capture training summaries
+                validation_summary, validation_accuracy = session.run(
+                    [merged, eval_step],
+                    feed_dict={bottleneck_input: validation_bottlenecks,
+                               ground_truth_input: validation_ground_truth})
 
-            validation_writer.add_summary(validation_summary, i)
-            print('%s: Step %d: Validation accuracy = %.1f%% (N=%d)' %
-                  (datetime.now(), i, validation_accuracy * 100,
-                   len(validation_bottlenecks)))
+                validation_writer.add_summary(validation_summary, i)
+                print('%s: Step %d: Validation accuracy = %.1f%% (N=%d)' %
+                      (datetime.now(), i, validation_accuracy * 100,
+                       len(validation_bottlenecks)))
 
-            # We've completed all our training, so run a final test evaluation
-            test_bottlenecks, test_ground_truth, test_filenames = (
-                get_random_cached_bottlenecks(
-                    session,
-                    image_list,
-                    kwargs.get("test_batch_size"),
-                    'testing',
-                    kwargs.get("bottleneck_dir"),
-                    kwargs.get("image_dir"),
-                    jpeg_data_tensor,
-                    bottleneck_tensor))
-
-            test_accuracy, predictions = session.run(
-                [eval_step, prediction],
-                feed_dict={bottleneck_input: test_bottlenecks,
-                           ground_truth_input: test_ground_truth})
-
-            print('Final test accuracy = %.1f%% (N=%d)' % (
-                test_accuracy * 100, len(test_bottlenecks)))
-
-            if kwargs.get("misclassified_print"):
-                print('=== MISCLASSIFIED TEST IMAGES ===')
-                for i, test_filename in enumerate(test_filenames):
-                    if predictions[i] != test_ground_truth[i].argmax():
-                        print('%70s  %s' % (
-                            test_filename,
-                            list(image_list)[predictions[i]]))
-
-            # Write out the trained graph and labels with the weights stored as
-            # constants.
-            output_graph_def = graph_util.convert_variables_to_constants(
+        # We've completed all our training, so run a final test evaluation
+        test_bottlenecks, test_ground_truth, test_filenames = (
+            get_random_cached_bottlenecks(
                 session,
-                graph.as_graph_def(),
-                [kwargs.get("tensor_name", "final_result")])
+                image_list,
+                kwargs.get("test_batch_size"),
+                'testing',
+                kwargs.get("bottleneck_dir"),
+                kwargs.get("image_dir"),
+                jpeg_data_tensor,
+                bottleneck_tensor))
 
-            with gfile.FastGFile(kwargs.get("output_graph"), 'wb') as f:
-                f.write(output_graph_def.SerializeToString())
+        test_accuracy, predictions = session.run(
+            [eval_step, prediction],
+            feed_dict={bottleneck_input: test_bottlenecks,
+                       ground_truth_input: test_ground_truth})
 
-            with gfile.FastGFile(kwargs.get("output_labels"), 'w') as f:
-                f.write('\n'.join(image_list.keys()) + '\n')
+        print('Final test accuracy = %.1f%% (N=%d)' % (
+            test_accuracy * 100, len(test_bottlenecks)))
+
+        if kwargs.get("misclassified_print"):
+            print('=== MISCLASSIFIED TEST IMAGES ===')
+            for i, test_filename in enumerate(test_filenames):
+                if predictions[i] != test_ground_truth[i].argmax():
+                    print('%70s  %s' % (
+                        test_filename,
+                        list(image_list)[predictions[i]]))
+
+        # Write out the trained graph and labels with the weights stored as
+        # constants.
+        output_graph_def = graph_util.convert_variables_to_constants(
+            session,
+            graph.as_graph_def(),
+            [kwargs.get("tensor_name", "final_result")])
+
+        with gfile.FastGFile(kwargs.get("output_graph"), 'wb') as f:
+            f.write(output_graph_def.SerializeToString())
+
+        with gfile.FastGFile(kwargs.get("output_labels"), 'w') as f:
+            f.write('\n'.join(image_list.keys()) + '\n')
