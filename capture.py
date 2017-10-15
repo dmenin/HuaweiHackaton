@@ -14,23 +14,19 @@ def getUnIdentifier():
     return unid
 
 import cv2
-#import sys
-
-#faceCascade = cv2.CascadeClassifier(os.path.join(WD, "haarcascade_frontalface_default.xml"))
-#faceCascade.empty()
-
 camera = cv2.VideoCapture(0)
 
 try:
     while True:
 
         return_value,image = camera.read()
-
-
-        gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
-        image = gray
         
-        cv2.imshow('image',gray)
+        image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
+        #try to center head
+        #NOTE: its img[y: y + h, x: x + w] and *not* img[x: x + w, y: y + h]
+        image  = image [0:330, 100:500]
+                    
+        cv2.imshow('image',image)
         
         ## Check the Keyboard input
         ch = 0xFF & cv2.waitKey(1) 
@@ -47,8 +43,8 @@ try:
         if ch == ord('8'):
             cv2.imwrite('training_dataset\\neutral\\{}.jpg'.format(getUnIdentifier()),image)
 
-#        if ch == ord('7'):
-#            cv2.imwrite('training_dataset\\angry\\{}.jpg'.format(getUnIdentifier()),image)
+        if ch == ord('7'):
+            cv2.imwrite('training_dataset\\angry\\{}.jpg'.format(getUnIdentifier()),image)
 
         if ch == ord('l'):
             cv2.imwrite('test_img\\test_img.jpg',image)

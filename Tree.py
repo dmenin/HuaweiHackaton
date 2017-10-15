@@ -34,7 +34,7 @@ def getSuggestion(emotion, day, time):
     model = tree.DecisionTreeClassifier()
     model.fit(df[['Emotion','DayofWeek','TimeofDay']], df['Vendor'])
 
-    d={}
+    d={} 
     d['Emotion']   = leE.transform([emotion])[0]
     d['DayofWeek'] = leD.transform([day])[0] 
     d['TimeofDay'] = leT.transform([time])[0]
