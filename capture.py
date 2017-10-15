@@ -6,6 +6,7 @@ import classify as classme
 from tabulate import tabulate#pretty print
 import pandas as pd
 import Tree
+import random
 
 
 def getUnIdentifier():
@@ -55,14 +56,17 @@ try:
             emotion = resultdf.iloc[0].Emotion
             prob = round(float(resultdf.iloc[0].Probability) * 100,2) 
             
+            dow = random.choice(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday','Sunday'])
+            tod = random.choice(['Morning', 'Evening'])
+            
             if emotion != 'neutral':
                 print ("There is a {}% chance you are feeling {}".format(prob, emotion))
-                suggestion = Tree.getSuggestion(emotion, 'Sunday', 'Evening')
+                print ("(Day of the week: {} {}) \n".format(dow, tod))
+                suggestion = Tree.getSuggestion(emotion, dow, tod)
                 print (suggestion)
+                #print ('Probabilities:')
+                #print (tabulate(resultdf, headers='keys', tablefmt='psql'))
                 print ('\n \n')
-                print ('Probabilities:')
-                print (tabulate(resultdf, headers='keys', tablefmt='psql'))
-
             else:
                 print ('no emotion detected')
             print ('')

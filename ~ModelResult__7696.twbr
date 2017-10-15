@@ -203,11 +203,18 @@
         <style>
           <style-rule element='axis'>
             <encoding attr='space' class='0' field='[federated.0nppsmz1x22kmx1e8nwsn1guit6i].[sum:F2 (dv.csv):qk]' field-type='quantitative' fold='true' scope='rows' synchronized='true' type='space' />
-            <format attr='width' field='[federated.0nppsmz1x22kmx1e8nwsn1guit6i].[sum:F2:qk]' value='26' />
-            <format attr='width' field='[federated.0nppsmz1x22kmx1e8nwsn1guit6i].[sum:F2 (dv.csv):qk]' value='26' />
+            <format attr='width' field='[federated.0nppsmz1x22kmx1e8nwsn1guit6i].[sum:F2:qk]' value='64' />
+            <format attr='width' field='[federated.0nppsmz1x22kmx1e8nwsn1guit6i].[sum:F2 (dv.csv):qk]' value='64' />
+            <format attr='display' class='0' field='[federated.0nppsmz1x22kmx1e8nwsn1guit6i].[sum:F2 (dv.csv):qk]' scope='rows' value='false' />
+            <format attr='title' class='0' field='[federated.0nppsmz1x22kmx1e8nwsn1guit6i].[sum:F2:qk]' scope='rows' value='Accuracy (%)' />
+            <format attr='subtitle' class='0' field='[federated.0nppsmz1x22kmx1e8nwsn1guit6i].[sum:F2:qk]' scope='rows' value='' />
+            <format attr='auto-subtitle' class='0' field='[federated.0nppsmz1x22kmx1e8nwsn1guit6i].[sum:F2:qk]' scope='rows' value='true' />
           </style-rule>
           <style-rule element='cell'>
             <format attr='width' field='[federated.0nppsmz1x22kmx1e8nwsn1guit6i].[none:F1:ok]' value='22' />
+          </style-rule>
+          <style-rule element='worksheet'>
+            <format attr='display-field-labels' scope='cols' value='false' />
           </style-rule>
         </style>
         <panes>
@@ -229,7 +236,7 @@
             <view>
               <breakdown value='auto' />
             </view>
-            <mark class='Bar' />
+            <mark class='Line' />
             <encodings>
               <color column='[federated.0nppsmz1x22kmx1e8nwsn1guit6i].[:Measure Names]' />
             </encodings>
@@ -353,14 +360,6 @@
           </strip>
           <strip size='2147483647'>
             <card type='rows' />
-          </strip>
-          <strip size='31'>
-            <card type='title' />
-          </strip>
-        </edge>
-        <edge name='right'>
-          <strip size='160'>
-            <card pane-specification-id='1' param='[federated.0nppsmz1x22kmx1e8nwsn1guit6i].[:Measure Names]' type='color' />
           </strip>
         </edge>
       </cards>

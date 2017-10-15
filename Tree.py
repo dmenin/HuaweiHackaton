@@ -3,6 +3,9 @@ import numpy as np
 from sklearn import tree
 from sklearn.preprocessing import LabelEncoder
 
+import warnings
+warnings.filterwarnings('ignore')
+
 import os
 WD = 'C:\\git\\HuaweiHackaton\\'
 os.chdir(WD)
