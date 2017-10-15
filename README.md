@@ -1,6 +1,3 @@
-Huawei Hackaton
-===================
-
 ![](aux_data/cover.png)
 
 * Diego Menin - MsC @ TCD  (https://github.com/dmenin)
