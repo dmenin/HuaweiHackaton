@@ -10,7 +10,6 @@ import os
 WD = 'C:\\git\\HuaweiHackaton\\'
 os.chdir(WD)
 
-
 #le.inverse_transform([leE.classes_])
 #leD.inverse_transform([leD.classes_])
 

@@ -76,4 +76,6 @@ finally:
     camera.release()
     cv2.destroyAllWindows()
 
-
+#DESKTOP-MH1VBMC
+#201 718 160
+#test@123
