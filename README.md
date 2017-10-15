@@ -1,7 +1,9 @@
 Huawei Hackaton
 ===================
 
-WIP....
+* Diego Menin - MsC @ TCD
+* Joao Santos - PhD @ TCD
+* Ritik Verma - Undergrad @ UCD
 
 How to use it
 -------------
