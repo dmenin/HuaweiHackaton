@@ -1,9 +1,11 @@
 Huawei Hackaton
 ===================
 
-* Diego Menin - MsC @ TCD
-* Joao Santos - PhD @ TCD
-* Ritik Verma - Undergrad @ UCD
+![](aux_data/cover.png)
+
+* Diego Menin - MsC @ TCD  (https://github.com/dmenin)
+* Joao Santos - PhD @ TCD  (https://github.com/facocalj)
+* Ritik Verma - Undergrad @ UCD (https://github.com/ritikverma)
 
 How to use it
 -------------
