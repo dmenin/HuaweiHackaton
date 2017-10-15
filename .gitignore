@@ -2,3 +2,5 @@ training_dataset/
 inception/
 tf_files/
 test_img/
+*.pyo
+*.pyc
