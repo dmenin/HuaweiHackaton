@@ -23,18 +23,19 @@ dt, dv = train(**{
 })
 
 
-pickle.dump(dt, open('dt.pickle', 'wb'))
-pickle.dump(dv, open('dv.pickle', 'wb'))
+#####Output used to produce the Train\VAlidation Accuracy report on Tableau
+pickle.dump(dt, open('aux_data\\dt.pickle', 'wb'))
+pickle.dump(dv, open('aux_data\\dv.pickle', 'wb'))
 print (dt)
 print (dv)
 
-# dt =  pickle.load(open('dt.pickle' , 'rb'))
-# dv =  pickle.load(open('dv.pickle' , 'rb'))
+# dt =  pickle.load(open('aux_data\\dt.pickle' , 'rb'))
+# dv =  pickle.load(open('aux_data\\dv.pickle' , 'rb'))
 
-with open("dt.csv", "w") as f:
+with open("aux_data\\dt.csv", "w") as f:
     for key in dt:
         f.write(str(key) + "," + str(dt[key])+'\n')
 
-with open("dv.csv", "w") as f2:
+with open("aux_data\\dv.csv", "w") as f2:
     for key in dv:
         f2.write(str(key) + "," + str(dv[key])+'\n')
